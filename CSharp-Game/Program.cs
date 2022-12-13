@@ -11,11 +11,11 @@ namespace CSharp_Game
         static void Main(string[] args)
         {
 
-            Level level = new Level(20, 1);
             //Inititaliser les bases
             var Player = new Base() { x = 0, y = 0, life = 100};
             var Ennemy = new Base() { x = 20, y = 0, life = 200};
             char[] niveau = new char[20];
+            //Créer le terrain
             for (int i = 0; i < niveau.Length; i++)
             {
                 niveau[i] = '.';
@@ -24,10 +24,11 @@ namespace CSharp_Game
             //Donner une valeur aléatoire aux troupes ennemies
             Random random = new Random();
             int ennemyLife = random.Next(1, 4);
-            int allyLife = 0;
-            
 
-            Minion minion = new Minion() { x = 0, y = 1, life = allyLife };
+            //Donner une valeur de départ pour un sbire allié
+            int allyLife = 0;
+
+            List<Minion> minions = new List<Minion> { new Minion() { x = 0, y = 0, life = allyLife } };
             EnnemyMinion ennemyMinion = new EnnemyMinion() { x = 19, y = 1, life = ennemyLife };
 
             //Augmente la valeur des ennemis en fonction de la durée de la partie
@@ -43,71 +44,76 @@ namespace CSharp_Game
 
             //Génère automatiquement les ennemis
             ConsoleKey key;
-            while (true)
+            while (Player.life != 0 && Ennemy.life!= 0)
             {
                 key = Console.ReadKey().Key;
-                System.Threading.Thread.Sleep(1000);
+                System.Threading.Thread.Sleep(500);
                 if (key == ConsoleKey.RightArrow || key == ConsoleKey.NumPad2 || key == ConsoleKey.NumPad4 || key == ConsoleKey.NumPad6 || key == ConsoleKey.NumPad8)
                 {
                     //Ajout des troupes alliées
-                    if (minion.money >= 2 && key == ConsoleKey.NumPad2)
+                    if (Minion.money >= 2 && key == ConsoleKey.NumPad2)
                     {
-                        new Minion() { x = 0, y = 1, life = allyLife = 2 };
-                        minion.money -= 2;
+                        minions.Add(new Minion() { x = 0, y = 1, life = allyLife = 2 });
+                        Minion.money -= 2;
                     }
-                    if (minion.money >= 4 && key == ConsoleKey.NumPad4)
+                    if (Minion.money >= 4 && key == ConsoleKey.NumPad4)
                     {
-                        new Minion() { x = 0, y = 1, life = allyLife = 4 };
-                        minion.money -= 4;
+                        minions.Add(new Minion() { x = 0, y = 1, life = allyLife = 4 });
+                        Minion.money -= 4;
                     }
-                    if (minion.money >= 6 && key == ConsoleKey.NumPad6)
+                    if (Minion.money >= 6 && key == ConsoleKey.NumPad6)
                     {
-                        new Minion() { x = 0, y = 1, life = allyLife = 6 };
-                        minion.money -= 6;
+                        minions.Add(new Minion() { x = 0, y = 1, life = allyLife = 6 });
+                        Minion.money -= 6;
                     }
-                    if (minion.money >= 8 && key == ConsoleKey.NumPad8)
+                    if (Minion.money >= 8 && key == ConsoleKey.NumPad8)
                     {
-                        new Minion() { x = 0, y = 1, life = allyLife = 8 };
-                        minion.money -= 8;
+                        minions.Add(new Minion() { x = 0, y = 1, life = allyLife = 8 });
+                        Minion.money -= 8;
                     }
 
-                    //Mouvement des troupes alliées
-                    niveau[minion.x] = '.';
-                    minion.x += 1;
-                    niveau[minion.x] = char.Parse(allyLife.ToString());
+                    foreach (Minion minion in minions)
+                    {
+                        //Mouvement des troupes alliées
+                        niveau[minion.x] = '.';
+                        minion.x += 1;
+                        niveau[minion.x] = char.Parse(minion.life.ToString());
 
+                        //Calcul de la vie après combat
+                        if (minion.x == ennemyMinion.x + 1 || minion.x == ennemyMinion.x - 1)
+                        {
+                            if (minion.life > ennemyLife)
+                            {
+                                minion.life = minion.life - ennemyLife;
+                                ennemyLife = 0;
+                            }
+                            if (minion.life < ennemyLife)
+                            {
+                                ennemyLife = ennemyLife - minion.life;
+                                minion.life = 0;
+                            }
+                            if (minion.life == ennemyLife)
+                            {
+                                minion.life = 0;
+                                ennemyLife = 0;
+                            }
+                        }
+
+                    }
                     //Mouvement des troupes ennemies
                     niveau[ennemyMinion.x] = '.';
                     ennemyMinion.x -= 1;
                     niveau[ennemyMinion.x] = char.Parse(ennemyLife.ToString());
 
-                    if (minion.x == ennemyMinion.x + 1 || minion.x == ennemyMinion.x - 1)
-                    {
-                        if (allyLife > ennemyLife)
-                        {
-                            allyLife = allyLife - ennemyLife;
-                            ennemyLife = 0;
-                        }
-                        if (allyLife < ennemyLife)
-                        {
-                            ennemyLife = ennemyLife - allyLife;
-                            allyLife = 0;
-                        }
-                        if (allyLife == ennemyLife)
-                        {
-                            allyLife = 0;
-                            ennemyLife = 0;
-                        }
-                    }
-
-
-                    minion.money += 1;
+                    Minion.money += 1;
                 }
                 Console.Clear();
                 for (int i = 0; i < niveau.Length; i++)
                 {
                     Console.Write(niveau[i]); 
                 }
+
+
                 Console.WriteLine("");
                 Console.WriteLine("Player life : " + Player.life);
                 Console.WriteLine("===========");
@@ -121,23 +127,18 @@ namespace CSharp_Game
                 Console.WriteLine("Press -> to pass your turn");
                 Console.WriteLine("Press 2, 4, 6, 8 to add troops ( The value you press is their lifes)");
                 Console.WriteLine("To summon troops, you must have the same money as the value of your troop");
-                Console.WriteLine("Money : " + minion.money);
-
+                Console.WriteLine("Money : " + Minion.money);
             }
-
-
-            
-
 
             //Affiche la fin du jeu
             if (Player.life is 0)
             {
-                Console.WriteLine("You win");
+                Console.WriteLine("You lose");
             }
 
             if (Ennemy.life is 0)
             {
-                Console.WriteLine("You lose");
+                Console.WriteLine("You win");
             }
             Console.ReadLine();
         }
@@ -149,7 +150,7 @@ class Base
     public int life;
     public int x;
     public int y;
-    public int money;
+    static public int money;
 }
 
 class Minion : Base
