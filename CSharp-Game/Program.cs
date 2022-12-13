@@ -12,8 +12,8 @@ namespace CSharp_Game
         {
 
             //Inititaliser les bases
-            var Player = new Base() { x = 0, y = 0, life = 100};
-            var Ennemy = new Base() { x = 20, y = 0, life = 200};
+            var Player = new Base() { x = 0, life = 100};
+            var Ennemy = new Base() { x = 20, life = 200};
             char[] niveau = new char[20];
             //Créer le terrain
             for (int i = 0; i < niveau.Length; i++)
@@ -28,8 +28,8 @@ namespace CSharp_Game
             //Donner une valeur de départ pour un sbire allié
             int allyLife = 0;
 
-            List<Minion> minions = new List<Minion> { new Minion() { x = 0, y = 0, life = allyLife } };
-            EnnemyMinion ennemyMinion = new EnnemyMinion() { x = 19, y = 1, life = ennemyLife };
+            List<Minion> minions = new List<Minion> { new Minion() { x = 0, life = allyLife } };
+            EnnemyMinion ennemyMinion = new EnnemyMinion() { x = 19, life = ennemyLife };
 
             //Augmente la valeur des ennemis en fonction de la durée de la partie
             if (ennemyMinion.number is 5)
@@ -53,22 +53,22 @@ namespace CSharp_Game
                     //Ajout des troupes alliées
                     if (Minion.money >= 2 && key == ConsoleKey.NumPad2)
                     {
-                        minions.Add(new Minion() { x = 0, y = 1, life = allyLife = 2 });
+                        minions.Add(new Minion() { x = 0, life = allyLife = 2 });
                         Minion.money -= 2;
                     }
                     if (Minion.money >= 4 && key == ConsoleKey.NumPad4)
                     {
-                        minions.Add(new Minion() { x = 0, y = 1, life = allyLife = 4 });
+                        minions.Add(new Minion() { x = 0, life = allyLife = 4 });
                         Minion.money -= 4;
                     }
                     if (Minion.money >= 6 && key == ConsoleKey.NumPad6)
                     {
-                        minions.Add(new Minion() { x = 0, y = 1, life = allyLife = 6 });
+                        minions.Add(new Minion() { x = 0, life = allyLife = 6 });
                         Minion.money -= 6;
                     }
                     if (Minion.money >= 8 && key == ConsoleKey.NumPad8)
                     {
-                        minions.Add(new Minion() { x = 0, y = 1, life = allyLife = 8 });
+                        minions.Add(new Minion() { x = 0, life = allyLife = 8 });
                         Minion.money -= 8;
                     }
 
@@ -78,9 +78,8 @@ namespace CSharp_Game
                         niveau[minion.x] = '.';
                         minion.x += 1;
                         niveau[minion.x] = char.Parse(minion.life.ToString());
-
                         //Calcul de la vie après combat
-                        if (minion.x == ennemyMinion.x + 1 || minion.x == ennemyMinion.x - 1)
+                        if (minion.x == ennemyMinion.x + 2 || minion.x == ennemyMinion.x - 2)
                         {
                             if (minion.life > ennemyLife)
                             {
@@ -99,20 +98,34 @@ namespace CSharp_Game
                             }
                         }
 
+
+
+                        //Détruit le sbire si il atteint la base après déduction de points de vie
+                        if (minion.x == Ennemy.x - 1 )
+                        {
+                            Ennemy.life -= minion.life;
+                            minions.Remove(minion);
+                        }
+                        if (ennemyMinion.x == Player.x + 1)
+                        {
+                            Player.life -= ennemyLife;
+                            
+                        }
                     }
+
                     //Mouvement des troupes ennemies
                     niveau[ennemyMinion.x] = '.';
                     ennemyMinion.x -= 1;
                     niveau[ennemyMinion.x] = char.Parse(ennemyLife.ToString());
-
                     Minion.money += 1;
+
+
                 }
                 Console.Clear();
                 for (int i = 0; i < niveau.Length; i++)
                 {
                     Console.Write(niveau[i]); 
                 }
-
 
                 Console.WriteLine("");
                 Console.WriteLine("Player life : " + Player.life);
@@ -149,24 +162,15 @@ class Base
 {
     public int life;
     public int x;
-    public int y;
     static public int money;
 }
 
 class Minion : Base
 {
-    public int life;
-    public int x;
-    public int y;
+
 }
 
 class EnnemyMinion : Minion
 {
     public int number;
-}
-
-class Plate
-{
-    public Base base1;
-    public Minion minion;
 }
